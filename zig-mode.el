@@ -5,7 +5,7 @@
 ;; Maintainer: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; URL: https://github.com/zig-lang/zig-mode
 ;; Version: 0.0.8
-;; Package-Requires: ((emacs "26.1") (reformatter "0.6"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: zig, languages
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(require 'reformatter)
-
 (defgroup zig-mode nil
   "Support for Zig code."
   :link '(url-link "https://ziglang.org/")
@@ -40,11 +38,6 @@
   "Indent Zig code by this number of spaces."
   :type 'integer
   :safe #'integerp)
-
-(defcustom zig-format-on-save t
-  "Format buffers before saving using zig fmt."
-  :type 'boolean
-  :safe #'booleanp)
 
 (defcustom zig-zig-bin "zig"
   "Path to zig executable."
@@ -105,18 +98,6 @@ If given a SOURCE, execute the CMD on it."
   "Create an executable from the current buffer and run it immediately."
   (interactive)
   (zig--run-cmd "run" (file-local-name (buffer-file-name)) "-O" zig-run-optimization-mode))
-
-;; zig fmt
-
-(reformatter-define zig-format
-  :program zig-zig-bin
-  :args '("fmt" "--stdin")
-  :group 'zig-mode
-  :lighter " ZigFmt")
-
-;;;###autoload (autoload 'zig-format-buffer "zig-mode" nil t)
-;;;###autoload (autoload 'zig-format-region "zig-mode" nil t)
-;;;###autoload (autoload 'zig-format-on-save-mode "zig-mode" nil t)
 
 (defun zig-re-word (inner)
   "Construct a regular expression for the word INNER."
@@ -454,7 +435,6 @@ This is written mainly to be used as `end-of-defun-function' for Zig."
 (defvar zig-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-b") #'zig-compile)
-    (define-key map (kbd "C-c C-f") #'zig-format-buffer)
     (define-key map (kbd "C-c C-r") #'zig-run)
     (define-key map (kbd "C-c C-t") #'zig-test-buffer)
     map)
@@ -479,10 +459,7 @@ This is written mainly to be used as `end-of-defun-function' for Zig."
   (setq buffer-file-coding-system 'utf-8-unix) ; zig source is always utf-8
   (setq font-lock-defaults '(zig-font-lock-keywords
                              nil nil nil nil
-                             (font-lock-syntactic-face-function . zig-mode-syntactic-face-function)))
-
-  (when zig-format-on-save
-    (zig-format-on-save-mode 1)))
+                             (font-lock-syntactic-face-function . zig-mode-syntactic-face-function))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(zig\\|zon\\)\\'" . zig-mode))
